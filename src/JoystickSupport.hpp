@@ -36,6 +36,9 @@ public:
 	virtual void deinit();
 	virtual void update(double deltaTime);
 	virtual bool configureGui(bool show);
+
+private:
+	bool initialized;
 };
 
 

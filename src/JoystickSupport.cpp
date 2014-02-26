@@ -19,6 +19,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "JoystickSupport.hpp"
 
+#include <QDebug>
+
+#ifndef SDL_MAIN_HANDLED
+#define SDL_MAIN_HANDLED
+#endif
+#include "SDL.h"
+
 StelModule*
 JoystickPluginInterface::getStelModule() const
 {
@@ -41,7 +48,7 @@ JoystickPluginInterface::getPluginInfo() const
 
 
 
-JoystickSupport::JoystickSupport()
+JoystickSupport::JoystickSupport() : initialized(false)
 {
 	setObjectName("JoystickSupport");
 }
@@ -55,20 +62,49 @@ JoystickSupport::~JoystickSupport()
 void
 JoystickSupport::init()
 {
-	// TODO: When is this called?
+	SDL_SetMainReady(); // Because SDL's custom main() is not used
+	 // Implies also SDL_INIT_JOYSTICK
+	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0)
+	{
+		qWarning() << "JoystickSupport: SDL failed to initialize:"
+		           << SDL_GetError();
+		initialized = false;
+		return;
+	}
+	initialized = true;
+
+	//
 }
 
 void
 JoystickSupport::deinit()
 {
-	//
+	if (initialized)
+		SDL_Quit();
 }
 
 void
 JoystickSupport::update(double deltaTime)
 {
-	//
-	Q_UNUSED(deltaTime);
+	if (!initialized)
+		return;
+
+	int deviceCount = SDL_NumJoysticks();
+	if (deviceCount < 0)
+	{
+		qWarning() << "JoystickSupport: error finding number of devices:"
+		         << SDL_GetError();
+		return;
+	}
+	qDebug() << "JoystickSupport: Number of connected devices:" << deviceCount;
+	// TODO: Emit signal if there is a change in connected number?
+
+	for (int i = 0; i < deviceCount; i++) // Thread safety?
+	{
+		qDebug() << "Device" << i << ':'
+		         << QString(SDL_JoystickNameForIndex(i))
+		         << (SDL_IsGameController(i) ? "is a game controller" : "");
+	}
 }
 
 bool
