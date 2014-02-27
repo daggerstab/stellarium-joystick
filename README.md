@@ -1,5 +1,5 @@
-Stellarium Joystic Plug-in
-==========================
+Stellarium Joystick Plug-in
+===========================
 
 Plug-in providing joystick and gamepad support for Stellarium,
 the free/open-source astronomy application (http://stellarium.org).
