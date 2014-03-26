@@ -73,7 +73,10 @@ JoystickSupport::init()
 	}
 	initialized = true;
 
-	//
+	// For debugging:
+	devicesDescribed = false;
+
+	// TODO: Disable joystick/gamepad event handling?
 }
 
 void
@@ -93,17 +96,18 @@ JoystickSupport::update(double deltaTime)
 	if (deviceCount < 0)
 	{
 		qWarning() << "JoystickSupport: error finding number of devices:"
-		         << SDL_GetError();
+		           << SDL_GetError();
 		return;
 	}
 	qDebug() << "JoystickSupport: Number of connected devices:" << deviceCount;
 	// TODO: Emit signal if there is a change in connected number?
 
-	for (int i = 0; i < deviceCount; i++) // Thread safety?
+	// TODO: Update joystick/gamepad state?
+
+	if (!devicesDescribed)
 	{
-		qDebug() << "Device" << i << ':'
-		         << QString(SDL_JoystickNameForIndex(i))
-		         << (SDL_IsGameController(i) ? "is a game controller" : "");
+		devicesDescribed = true;
+		printDeviceDescriptions();
 	}
 }
 
@@ -113,4 +117,52 @@ JoystickSupport::configureGui(bool show)
 	// TODO: Think of a way to make GUI more independent for all plugins.
 	Q_UNUSED(show);
 	return false; // For now there's no configuration window
+}
+
+void JoystickSupport::printDeviceDescriptions()
+{
+	for (int i = 0; i < SDL_NumJoysticks(); i++) // Thread safety?
+	{
+		bool isGamepad = SDL_IsGameController(i);
+		qDebug() << "Device" << i << ':'
+		         << QString(SDL_JoystickNameForIndex(i))
+		         << (isGamepad ? "is a game controller" : "is a joystick");
+
+		SDL_GameController* gamepad = NULL;
+		SDL_Joystick* joystick = NULL;
+		if (isGamepad)
+		{
+			gamepad = SDL_GameControllerOpen(i);
+			if (gamepad == NULL)
+			{
+				qDebug() << "JoystickSupport: unable to open device" << i;
+				continue;
+			}
+
+			// TODO: Load and display gamepad bindings?
+
+			joystick = SDL_GameControllerGetJoystick(gamepad);
+		}
+		else
+			joystick = SDL_JoystickOpen(i);
+
+		if (joystick == NULL)
+		{
+			qDebug() << "JoystickSupport: unable to open device" << i;
+			if (gamepad)
+				SDL_GameControllerClose(gamepad);
+			continue;
+		}
+
+		qDebug() << SDL_JoystickName(joystick) << "has:" << endl
+		         << SDL_JoystickNumAxes(joystick) << "axes" << endl
+		         << SDL_JoystickNumBalls(joystick) << "balls" << endl
+		         << SDL_JoystickNumButtons(joystick) << "buttons" << endl
+		         << SDL_JoystickNumHats(joystick) << "hats";
+
+		if (gamepad)
+			SDL_GameControllerClose(gamepad);
+		else
+			SDL_JoystickClose(joystick);
+	}
 }

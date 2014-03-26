@@ -38,7 +38,11 @@ public:
 	virtual bool configureGui(bool show);
 
 private:
+	void printDeviceDescriptions();
+
 	bool initialized;
+
+	bool devicesDescribed;
 };
 
 
