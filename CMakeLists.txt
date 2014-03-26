@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.11) # 2.8.11 is recommended for Qt 5.*
 
+
 # Project name and properties
 project(JoystickSupport) # TODO: Unnecessary?
+
 
 # Required packages
 find_package(Qt5Core REQUIRED)
@@ -19,6 +21,12 @@ find_path(SDL2_INCLUDE_DIR SDL.h
 if(NOT SDL2_INCLUDE_DIR)
   message(FATAL_ERROR "Unable to find SDL2 include directory.")
 endif(NOT SDL2_INCLUDE_DIR)
+
+
+# Optional packages
+find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
+                                  PATHS ${CMAKE_SOURCE_DIR}
+                                  NO_DEFAULT_PATH)
 
 # Stellarium paths
 if(NOT STELLARIUM_SOURCE_DIR)
@@ -86,6 +94,7 @@ if(NOT CMAKE_INSTALL_PREFIX)
 endif(NOT CMAKE_INSTALL_PREFIX)
 
 install(TARGETS JoystickSupport LIBRARY DESTINATION JoystickSupport/)
+install(FILES ${GAME_CONTROLLER_DB_PATH} DESTINATION JoystickSupport/ OPTIONAL)
 
 
 # Packaging

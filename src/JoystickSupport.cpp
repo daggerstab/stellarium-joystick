@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #include "JoystickSupport.hpp"
+#include "StelFileMgr.hpp"
 
 #include <QDebug>
 
@@ -41,7 +42,7 @@ JoystickPluginInterface::getPluginInfo() const
 	info.authors = "Bogdan Marinov";
 	info.contact = "daggerstab@gmail.com";
 	info.description = "Basic support for joysticks and gamepads (joypads, video game controllers).";
-	info.version = "0.0.1"; // TODO: Handle version numbers
+	info.version = "0.0.2"; // TODO: Handle version numbers in CMake?
 	return info;
 }
 
@@ -77,6 +78,25 @@ JoystickSupport::init()
 	devicesDescribed = false;
 
 	// TODO: Disable joystick/gamepad event handling?
+
+	QString dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
+	                                       StelFileMgr::File);
+	if (!dbPath.isEmpty())
+	{
+		qDebug() << "JoystickSupport: loading game controller database:"
+		         << dbPath;
+		SDL_RWops* dbFileStream = SDL_RWFromFile(dbPath.toUtf8().data(), "rt");
+		if (dbFileStream)
+		{
+			// Second param indicates that the stream should be closed on finish
+			int count = SDL_GameControllerAddMappingsFromRW(dbFileStream, 1);
+			if (count > 0)
+				qDebug() << "JoystickSupport:" << count
+				         << "device descriptions loaded.";
+		}
+		else
+			qDebug() << "JoystickSupport: SDL error:" << SDL_GetError();
+	}
 }
 
 void
