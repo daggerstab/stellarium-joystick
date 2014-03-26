@@ -22,16 +22,20 @@ endif(NOT SDL2_INCLUDE_DIR)
 
 # Stellarium paths
 if(NOT STELLARIUM_SOURCE_DIR)
-    message(FATAL_ERROR "STELLARIUM_SOURCE_DIR must contain the path to the Stellarium /src directory")
+  message(FATAL_ERROR "STELLARIUM_SOURCE_DIR must contain the path to the Stellarium /src directory")
 endif(NOT STELLARIUM_SOURCE_DIR)
 if(NOT STELLARIUM_BINARY_DIR)
-    message(FATAL_ERROR "STELLARIUM_BINARY_DIR must contain the path to a directory containing a Stellarium binary (e.g. the Stellarium build directory)")
+  message(FATAL_ERROR "STELLARIUM_BINARY_DIR must contain the path to a directory containing a Stellarium binary (e.g. the Stellarium build directory)")
 endif(NOT STELLARIUM_BINARY_DIR)
 
+if(UNIX AND NOT APPLE)
 # Temporarily link SDL2 as a static library until I can find out
 # why Stellarium can't find it when it's linked dynamically.
-add_library(SDL2 STATIC IMPORTED)
-set_target_properties(SDL2 PROPERTIES IMPORTED_LOCATION /usr/local/lib/libSDL2.a)
+# This is done by creating a fictitious target?
+  add_library(SDL2 STATIC IMPORTED)
+  set_target_properties(SDL2 PROPERTIES
+                        IMPORTED_LOCATION /usr/local/lib/libSDL2.a)
+endif()
 
 
 # Source code
@@ -39,7 +43,8 @@ include_directories(${STELLARIUM_SOURCE_DIR}
                     ${STELLARIUM_SOURCE_DIR}/core
                     ${SDL2_INCLUDE_DIR}
                     ${CMAKE_SOURCE_DIR}
-                    ${CMAKE_SOURCE_DIR}/src)
+                    ${CMAKE_SOURCE_DIR}/src
+                    ${STELLARIUM_BINARY_DIR}) #because of stelmain_export.h
                     #${STELLARIUM_SOURCE_DIR}/core/external
                     #${STELLARIUM_SOURCE_DIR}/core/modules
 
@@ -53,17 +58,31 @@ set(JoystickSupport_SRCS src/JoystickSupport.hpp
 SET(CMAKE_CXX_FLAGS -Wall)
 add_library(JoystickSupport MODULE ${JoystickSupport_SRCS})
 set_target_properties(JoystickSupport PROPERTIES AUTOMOC TRUE)
-target_link_libraries(JoystickSupport
-                      Qt5::Core Qt5::Gui Qt5::OpenGL
-                      #${SDL2_LIBRARY})
-                      SDL2) # Static linking - it's a target name.
-
+if(UNIX AND NOT APPLE)
+  target_link_libraries(JoystickSupport
+                        Qt5::Core Qt5::Gui Qt5::OpenGL
+                        #${SDL2_LIBRARY})
+                        SDL2) # Static linking - it's a target name.
+elseif(WIN32)
+  target_link_libraries(JoystickSupport
+                        Qt5::Core Qt5::Gui Qt5::OpenGL
+                        ${SDL2_LIBRARY}
+                        stelMain)
+  if(MSVC)
+    set_target_properties(JoystickSupport PROPERTIES PREFIX lib)
+    # MinGW's gcc uses it by default, so Stellarium's plug-in system was
+    # made to expect it.
+  endif()
+endif()
 
 # Installation
 if(NOT CMAKE_INSTALL_PREFIX)
   if(UNIX AND NOT APPLE)
     set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.stellarium/modules/)
   endif(UNIX AND NOT APPLE)
+  if(WIN32)
+    set(CMAKE_INSTALL_PREFIX $ENV{APPDATA}/Stellarium/modules/)
+  endif(WIN32)
 endif(NOT CMAKE_INSTALL_PREFIX)
 
 install(TARGETS JoystickSupport LIBRARY DESTINATION JoystickSupport/)
