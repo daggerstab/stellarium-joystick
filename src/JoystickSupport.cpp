@@ -262,7 +262,10 @@ void JoystickSupport::handleJoystickAxes(StelCore* core)
 	}
 
 	if (axesCount >= 2) // Two axes, assuming 0==X, 1==Y, negative is left/up.
-		interpretAsMovement(core, axisValues[0], axisValues[1]);
+	{
+		interpretAsHorizontalMovement(core, axisValues[0]);
+		interpretAsVerticalMovement(core, axisValues[1]);
+	}
 
 	if (axesCount >= 3) // Third axis is assumed to be a throttle.
 		interpretAsZooming(core, axisValues[2]);
@@ -335,16 +338,13 @@ JoystickSupport::handleJoystickHats(StelCore* core)
 }
 
 void
-JoystickSupport::interpretAsMovement(StelCore* core,
-                                     const Sint16& xAxis,
-                                     const Sint16& yAxis)
+JoystickSupport::interpretAsHorizontalMovement(StelCore* core,
+                                     const Sint16& xAxis)
 {
 	StelMovementMgr* movement = core->getMovementMgr();
 
 	if (xAxis < (-axisThreshold))
-	{
 		movement->turnLeft(true);
-	}
 	else if (xAxis > axisThreshold)
 		movement->turnRight(true);
 	else
@@ -352,6 +352,12 @@ JoystickSupport::interpretAsMovement(StelCore* core,
 		movement->turnLeft(false);
 		movement->turnRight(false);
 	}
+}
+
+void JoystickSupport::interpretAsVerticalMovement(StelCore* core,
+                                                  const Sint16& yAxis)
+{
+	StelMovementMgr* movement = core->getMovementMgr();
 
 	if (yAxis < -axisThreshold)
 		movement->turnUp(true);

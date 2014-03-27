@@ -53,7 +53,8 @@ private:
 	void handleJoystickButtons(StelCore* core);
 	void handleJoystickHats(StelCore* core);
 
-	void interpretAsMovement(StelCore* core, const Sint16& xAxis, const Sint16& yAxis);
+	void interpretAsHorizontalMovement(StelCore* core, const Sint16& xAxis);
+	void interpretAsVerticalMovement(StelCore* core, const Sint16& yAxis);
 	void interpretAsZooming(StelCore* core, const Sint16& zoomAxis);
 
 	bool initialized;
