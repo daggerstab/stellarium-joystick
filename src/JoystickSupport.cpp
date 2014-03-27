@@ -50,6 +50,11 @@ JoystickPluginInterface::getPluginInfo() const
 JoystickSupport::JoystickSupport() : initialized(false), joystick(NULL)
 {
 	setObjectName("JoystickSupport");
+
+	// TODO: This should be read from the configuration file.
+	// Ultimately, set separately for all axes, individually and/or in pairs.
+	axisThreshold = (2 << 13); // Around 8000
+	// Movement is between -32768 and 32767, so this is about one quarter.
 }
 
 JoystickSupport::~JoystickSupport()
@@ -147,8 +152,14 @@ JoystickSupport::update(double deltaTime)
 	{
 		joystick = SDL_JoystickOpen(index);
 		if (joystick == NULL)
+		{
 			qWarning() << "JoystickSupport: unable to open device" << index
 			           << SDL_GetError();
+			return;
+		}
+
+		// TODO: There will be more of these, put them in a function.
+		hatStates.fill(SDL_HAT_CENTERED, SDL_JoystickNumHats(joystick));
 	}
 
 	if (SDL_JoystickGetAttached(joystick) == SDL_FALSE)
@@ -163,6 +174,8 @@ JoystickSupport::update(double deltaTime)
 		//SDL_GameControllerUpdate();
 
 		StelCore* core = StelApp::getInstance().getCore();
+		// FIXME: Movement may depend on the order these are called. Fixed for hats?
+		handleJoystickAxes(core);
 		handleJoystickButtons(core);
 		handleJoystickHats(core);
 	}
@@ -228,6 +241,33 @@ JoystickSupport::printDeviceDescriptions()
 	}
 }
 
+void JoystickSupport::handleJoystickAxes(StelCore* core)
+{
+	Q_ASSERT(joystick);
+	Q_ASSERT(core);
+
+	int axesCount = SDL_JoystickNumAxes(joystick);
+	if (axesCount < 1)
+		return;
+	QVector<Sint16> axisValues(axesCount, 0);
+	for (int i = 0; i < axesCount; i++)
+	{
+		axisValues[i] = SDL_JoystickGetAxis(joystick, i);
+	}
+
+	if (axesCount == 1) // Some kind of paddle?
+	{
+		interpretAsZooming(core, axisValues[0]);
+		return;
+	}
+
+	if (axesCount >= 2) // Two axes, assuming 0==X, 1==Y, negative is left/up.
+		interpretAsMovement(core, axisValues[0], axisValues[1]);
+
+	if (axesCount >= 3) // Third axis is assumed to be a throttle.
+		interpretAsZooming(core, axisValues[2]);
+}
+
 void
 JoystickSupport::handleJoystickButtons(StelCore* core)
 {
@@ -240,9 +280,14 @@ JoystickSupport::handleJoystickHats(StelCore* core)
 	Q_ASSERT(joystick);
 	Q_ASSERT(core);
 	StelMovementMgr* movement = core->getMovementMgr();
-	for (int i = 0; i < SDL_JoystickNumHats(joystick); i++)
+	for (int i = 0; i < hatStates.count(); i++)
 	{
 		Uint8 state = SDL_JoystickGetHat(joystick, i);
+
+		// This results in discrete movement (one button press, one step) :))
+//		if (hatStates[i] == state)
+//			continue;
+
 		switch (state)
 		{
 		case SDL_HAT_UP:
@@ -275,10 +320,62 @@ JoystickSupport::handleJoystickHats(StelCore* core)
 			break;
 		case SDL_HAT_CENTERED:
 		default:
+			// Only clear the flags if the hat has changed them previously
+			// (otherwise this overwrites changes made by e.g. axis movements)
+			if (hatStates[i] == state)
+				continue;
 			movement->turnUp(false);
 			movement->turnDown(false);
 			movement->turnLeft(false);
 			movement->turnRight(false);
 		}
+
+		hatStates[i] = state;
+	}
+}
+
+void
+JoystickSupport::interpretAsMovement(StelCore* core,
+                                     const Sint16& xAxis,
+                                     const Sint16& yAxis)
+{
+	StelMovementMgr* movement = core->getMovementMgr();
+
+	if (xAxis < (-axisThreshold))
+	{
+		movement->turnLeft(true);
+	}
+	else if (xAxis > axisThreshold)
+		movement->turnRight(true);
+	else
+	{
+		movement->turnLeft(false);
+		movement->turnRight(false);
+	}
+
+	if (yAxis < -axisThreshold)
+		movement->turnUp(true);
+	else if (yAxis > axisThreshold)
+		movement->turnDown(true);
+	else
+	{
+		movement->turnUp(false);
+		movement->turnDown(false);
+	}
+}
+
+void
+JoystickSupport::interpretAsZooming(StelCore* core, const Sint16& zoomAxis)
+{
+	StelMovementMgr* movement = core->getMovementMgr();
+
+	if (zoomAxis < -axisThreshold)
+		movement->zoomOut(true);
+	else if (zoomAxis > axisThreshold)
+		movement->zoomIn(true);
+	else
+	{
+		movement->zoomIn(false);
+		movement->zoomOut(false);
 	}
 }

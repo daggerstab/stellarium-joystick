@@ -26,6 +26,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "SDL.h"
 
 #include <QObject>
+#include <QVector>
 
 #include "StelModule.hpp"
 
@@ -52,11 +53,21 @@ private:
 	void handleJoystickButtons(StelCore* core);
 	void handleJoystickHats(StelCore* core);
 
+	void interpretAsMovement(StelCore* core, const Sint16& xAxis, const Sint16& yAxis);
+	void interpretAsZooming(StelCore* core, const Sint16& zoomAxis);
+
 	bool initialized;
 
 	bool devicesDescribed;
 
 	SDL_Joystick* joystick;
+
+	//! For now, threshold/deadzone for all joystick axes.
+	//! Axis values in the interval [-threshold;threshold] are ignored.
+	Sint16 axisThreshold;
+
+	//! State of the hat(s) on the previous update.
+	QVector<Uint8> hatStates;
 };
 
 
