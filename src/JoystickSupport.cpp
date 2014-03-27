@@ -160,6 +160,7 @@ JoystickSupport::update(double deltaTime)
 
 		// TODO: There will be more of these, put them in a function.
 		hatStates.fill(SDL_HAT_CENTERED, SDL_JoystickNumHats(joystick));
+		buttonStates.fill(false, SDL_JoystickNumButtons(joystick));
 	}
 
 	if (SDL_JoystickGetAttached(joystick) == SDL_FALSE)
@@ -274,7 +275,33 @@ void JoystickSupport::handleJoystickAxes(StelCore* core)
 void
 JoystickSupport::handleJoystickButtons(StelCore* core)
 {
-	//
+	Q_ASSERT(joystick);
+	Q_ASSERT(core);
+	StelMovementMgr* movement = core->getMovementMgr();
+
+	for (int i = 0; i < buttonStates.count(); i++)
+	{
+		bool state = (SDL_JoystickGetButton(joystick, i) == 1);
+		bool prevState = buttonStates[i];
+
+		// Some buttons trigger one-time events, others control a state.
+		switch (i)
+		{
+		case 0: // Triggers mounting change
+			if (state != prevState)
+			{
+				if (!state) // Released after pressing
+					movement->toggleMountMode();
+			}
+			break;
+		case 1: // Slow movement mode
+			movement->moveSlow(state);
+			break;
+		default:
+		}
+
+		buttonStates[i] = state;
+	}
 }
 
 void

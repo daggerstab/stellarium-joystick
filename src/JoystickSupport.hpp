@@ -69,6 +69,8 @@ private:
 
 	//! State of the hat(s) on the previous update.
 	QVector<Uint8> hatStates;
+	//! State of the button(s) on the previous update.
+	QVector<bool> buttonStates;
 };
 
 
