@@ -22,10 +22,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <QDebug>
 
-#ifndef SDL_MAIN_HANDLED
-#define SDL_MAIN_HANDLED
-#endif
-#include "SDL.h"
+#include "StelApp.hpp"
+#include "StelCore.hpp"
+#include "StelMovementMgr.hpp"
 
 StelModule*
 JoystickPluginInterface::getStelModule() const
@@ -48,8 +47,7 @@ JoystickPluginInterface::getPluginInfo() const
 
 
 
-
-JoystickSupport::JoystickSupport() : initialized(false)
+JoystickSupport::JoystickSupport() : initialized(false), joystick(NULL)
 {
 	setObjectName("JoystickSupport");
 }
@@ -78,6 +76,8 @@ JoystickSupport::init()
 	devicesDescribed = false;
 
 	// TODO: Disable joystick/gamepad event handling?
+	SDL_JoystickEventState(SDL_IGNORE);
+	SDL_GameControllerEventState(SDL_IGNORE);
 
 	QString dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
 	                                       StelFileMgr::File);
@@ -102,6 +102,11 @@ JoystickSupport::init()
 void
 JoystickSupport::deinit()
 {
+	if (joystick)
+	{
+		SDL_JoystickClose(joystick);
+		joystick = NULL;
+	}
 	if (initialized)
 		SDL_Quit();
 }
@@ -119,15 +124,47 @@ JoystickSupport::update(double deltaTime)
 		           << SDL_GetError();
 		return;
 	}
-	qDebug() << "JoystickSupport: Number of connected devices:" << deviceCount;
+	if (deviceCount == 0)
+	{
+		if (joystick)
+		{
+			SDL_JoystickClose(joystick);
+			joystick = NULL;
+		}
+		return;
+	}
 	// TODO: Emit signal if there is a change in connected number?
-
-	// TODO: Update joystick/gamepad state?
 
 	if (!devicesDescribed)
 	{
 		devicesDescribed = true;
 		printDeviceDescriptions();
+	}
+
+	// TODO: For now assuming that we'll only use joystick 0
+	int index = 0;
+	if (joystick == NULL)
+	{
+		joystick = SDL_JoystickOpen(index);
+		if (joystick == NULL)
+			qWarning() << "JoystickSupport: unable to open device" << index
+			           << SDL_GetError();
+	}
+
+	if (SDL_JoystickGetAttached(joystick) == SDL_FALSE)
+	{
+		SDL_JoystickClose(joystick);
+		joystick = NULL;
+	}
+
+	if (joystick)
+	{
+		SDL_JoystickUpdate();
+		//SDL_GameControllerUpdate();
+
+		StelCore* core = StelApp::getInstance().getCore();
+		handleJoystickButtons(core);
+		handleJoystickHats(core);
 	}
 }
 
@@ -139,9 +176,13 @@ JoystickSupport::configureGui(bool show)
 	return false; // For now there's no configuration window
 }
 
-void JoystickSupport::printDeviceDescriptions()
+void
+JoystickSupport::printDeviceDescriptions()
 {
-	for (int i = 0; i < SDL_NumJoysticks(); i++) // Thread safety?
+	int deviceCount = SDL_NumJoysticks();
+	qDebug() << "JoystickSupport: Number of connected devices:" << deviceCount;
+
+	for (int i = 0; i < deviceCount; i++) // Thread safety?
 	{
 		bool isGamepad = SDL_IsGameController(i);
 		qDebug() << "Device" << i << ':'
@@ -184,5 +225,60 @@ void JoystickSupport::printDeviceDescriptions()
 			SDL_GameControllerClose(gamepad);
 		else
 			SDL_JoystickClose(joystick);
+	}
+}
+
+void
+JoystickSupport::handleJoystickButtons(StelCore* core)
+{
+	//
+}
+
+void
+JoystickSupport::handleJoystickHats(StelCore* core)
+{
+	Q_ASSERT(joystick);
+	Q_ASSERT(core);
+	StelMovementMgr* movement = core->getMovementMgr();
+	for (int i = 0; i < SDL_JoystickNumHats(joystick); i++)
+	{
+		Uint8 state = SDL_JoystickGetHat(joystick, i);
+		switch (state)
+		{
+		case SDL_HAT_UP:
+			movement->turnUp(true);
+			break;
+		case SDL_HAT_DOWN:
+			movement->turnDown(true);
+			break;
+		case SDL_HAT_LEFT:
+			movement->turnLeft(true);
+			break;
+		case SDL_HAT_RIGHT:
+			movement->turnRight(true);
+			break;
+		case SDL_HAT_LEFTUP:
+			movement->turnUp(true);
+			movement->turnLeft(true);
+			break;
+		case SDL_HAT_LEFTDOWN:
+			movement->turnDown(true);
+			movement->turnLeft(true);
+			break;
+		case SDL_HAT_RIGHTUP:
+			movement->turnUp(true);
+			movement->turnRight(true);
+			break;
+		case SDL_HAT_RIGHTDOWN:
+			movement->turnDown(true);
+			movement->turnRight(true);
+			break;
+		case SDL_HAT_CENTERED:
+		default:
+			movement->turnUp(false);
+			movement->turnDown(false);
+			movement->turnLeft(false);
+			movement->turnRight(false);
+		}
 	}
 }

@@ -20,10 +20,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef JOYSTICK_MODULE_HPP
 #define JOYSTICK_MODULE_HPP
 
+#ifndef SDL_MAIN_HANDLED
+#define SDL_MAIN_HANDLED
+#endif
+#include "SDL.h"
+
 #include <QObject>
 
 #include "StelModule.hpp"
 
+class StelCore;
+
+//! Main class of the Joystick Support plug-in.
 class JoystickSupport : public StelModule
 {
 	Q_OBJECT
@@ -39,10 +47,16 @@ public:
 
 private:
 	void printDeviceDescriptions();
+	void handleJoystickAxes(StelCore* core);
+	void handleJoystickBalls(StelCore* core);
+	void handleJoystickButtons(StelCore* core);
+	void handleJoystickHats(StelCore* core);
 
 	bool initialized;
 
 	bool devicesDescribed;
+
+	SDL_Joystick* joystick;
 };
 
 
