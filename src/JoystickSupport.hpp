@@ -33,6 +33,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class StelCore;
 
 //! Main class of the Joystick Support plug-in.
+//!
+//! As the name suggests, it is intended to add another way of control to
+//! Stellarium, recognizing connected joystick devices and translating
+//! button presses, axis moves and other events into the appropriate Stellarium
+//! actions.
+//!
+//! For now this includes only panning and zooming the view,
+//! making movements more precise/slow and switching between mount modes.
 class JoystickSupport : public StelModule
 {
 	Q_OBJECT
@@ -47,20 +55,42 @@ public:
 	virtual bool configureGui(bool show);
 
 private:
+	//! Lists all connected devices and their properties in the log.
+	//! Mostly a debugging function.
 	void printDeviceDescriptions();
+	//! Reads the current state of joystick axes and acts accordingly.
+	//! Requires an open device in #joystick.
 	void handleJoystickAxes(StelCore* core);
+	//! Reads the current state of joystick balls and acts accordingly.
+	//! @warning Not implemented, as I have no way to test it.
 	void handleJoystickBalls(StelCore* core);
+	//! Reads the current state of joystick buttons and acts accordingly.
+	//! Requires an open device in #joystick.
 	void handleJoystickButtons(StelCore* core);
+	//! Reads the current state of joystick hat switches and acts accordingly.
+	//! Gamepad direction buttons (the up/down/left/right quartet) are
+	//! often interpreted as hat switches.
+	//! Requires an open device in #joystick.
 	void handleJoystickHats(StelCore* core);
 
+	//! Interprets an axis value as indicating horizontal movement direction.
+	//! This means azimuth or right ascension depending on the mount mode.
+	//! Negative is left (counterclockwise), positivive is right (clockwise).
 	void interpretAsHorizontalMovement(StelCore* core, const Sint16& xAxis);
+	//! Interprets an axis value as indicating vertical movement direction.
+	//! This means altitude or declination depending on the mount mode.
+	//! Negative is "up", positive is "down".
 	void interpretAsVerticalMovement(StelCore* core, const Sint16& yAxis);
+	//! Interprets an axis value as indicating zooming direction (in or out).
 	void interpretAsZooming(StelCore* core, const Sint16& zoomAxis);
 
+	//! True if SDL was initialized correctly, if not - disables the plugin.
 	bool initialized;
 
+	// Temporary flag - prevents repeated output of device descriptions.
 	bool devicesDescribed;
 
+	//! The current active device, NULL if none is opened.
 	SDL_Joystick* joystick;
 
 	//! For now, threshold/deadzone for all joystick axes.
