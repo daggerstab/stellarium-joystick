@@ -298,6 +298,7 @@ JoystickSupport::handleJoystickButtons(StelCore* core)
 			movement->moveSlow(state);
 			break;
 		default:
+			break;
 		}
 
 		buttonStates[i] = state;
