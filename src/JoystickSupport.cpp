@@ -404,9 +404,9 @@ JoystickSupport::interpretAsZooming(StelCore* core, const Sint16& zoomAxis)
 	StelMovementMgr* movement = core->getMovementMgr();
 
 	if (zoomAxis < -axisThreshold)
-		movement->zoomOut(true);
-	else if (zoomAxis > axisThreshold)
 		movement->zoomIn(true);
+	else if (zoomAxis > axisThreshold)
+		movement->zoomOut(true);
 	else
 	{
 		movement->zoomIn(false);
