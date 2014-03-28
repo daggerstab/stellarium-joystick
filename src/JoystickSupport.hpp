@@ -83,6 +83,17 @@ private:
 	//! Requires an open device in #activeJoystick.
 	void handleJoystickHats(StelCore* core);
 
+	//! Reads the current state of gamepad controlls and acts accordingly.
+	//! @warning Calling this is mutually exclusive with the above functions.
+	//! As a result, joystick trackballs won't be handled natively.
+	// NOTE: Temporary, until I figure out how to add my own layer of bindings.
+	void handleGamepad(StelCore* core);
+
+	//! Helper function reading the state of gamepad buttons.
+	void getButtonStateChange(const SDL_GameControllerButton& button,
+	                          bool& state,
+	                          bool& changed);
+
 	//! Interprets an axis value as indicating horizontal movement direction.
 	//! This means azimuth or right ascension depending on the mount mode.
 	//! Negative is left (counterclockwise), positivive is right (clockwise).
@@ -115,6 +126,9 @@ private:
 	QVector<Uint8> hatStates;
 	//! State of the button(s) on the previous update.
 	QVector<bool> buttonStates;
+	//! State of the gamepad buttons on the previous update.
+	// NOTE: Temporary. It would be easier to remove later.
+	QVector<bool> gamepadStates;
 };
 
 

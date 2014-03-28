@@ -58,6 +58,8 @@ JoystickSupport::JoystickSupport() :
 	// Ultimately, set separately for all axes, individually and/or in pairs.
 	axisThreshold = (2 << 13); // Around 8000
 	// Movement is between -32768 and 32767, so this is about one quarter.
+
+	gamepadStates.fill(false, SDL_CONTROLLER_BUTTON_MAX);
 }
 
 JoystickSupport::~JoystickSupport()
@@ -122,6 +124,8 @@ JoystickSupport::deinit()
 void
 JoystickSupport::update(double deltaTime)
 {
+	Q_UNUSED(deltaTime);
+
 	if (!initialized)
 		return;
 
@@ -162,12 +166,15 @@ JoystickSupport::update(double deltaTime)
 		qWarning() << "Joystick Support: device" << index << "disconnected?";
 	}
 
-	if (activeJoystick)
+	StelCore* core = StelApp::getInstance().getCore();
+	if (activeGamepad)
+	{
+		SDL_GameControllerUpdate();
+		handleGamepad(core);
+	}
+	else if (activeJoystick)
 	{
 		SDL_JoystickUpdate();
-		//SDL_GameControllerUpdate();
-
-		StelCore* core = StelApp::getInstance().getCore();
 		// FIXME: Movement may depend on the order these are called. Fixed for hats?
 		handleJoystickAxes(core);
 		handleJoystickButtons(core);
@@ -403,6 +410,94 @@ JoystickSupport::handleJoystickHats(StelCore* core)
 
 		hatStates[i] = state;
 	}
+}
+
+void
+JoystickSupport::handleGamepad(StelCore* core)
+{
+	Q_ASSERT(activeGamepad);
+	Q_ASSERT(core);
+	StelMovementMgr* movement = core->getMovementMgr();
+
+	// Axes (before buttons, because I haven't fixed the order bug)
+	Sint16 value = SDL_GameControllerGetAxis(activeGamepad,
+	                                         SDL_CONTROLLER_AXIS_LEFTX);
+	interpretAsHorizontalMovement(core, value);
+	value = SDL_GameControllerGetAxis(activeGamepad, SDL_CONTROLLER_AXIS_LEFTY);
+	interpretAsVerticalMovement(core, value);
+	value = SDL_GameControllerGetAxis(activeGamepad,
+	                                  SDL_CONTROLLER_AXIS_RIGHTY);
+	interpretAsZooming(core, value);
+
+
+	// Buttons
+	bool state, changed;
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_DPAD_UP, state, changed);
+	if (state)
+		movement->turnUp(true);
+	else if (changed)
+		movement->turnUp(false);
+
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_DPAD_DOWN, state, changed);
+	if (state)
+		movement->turnDown(true);
+	else if (changed)
+		movement->turnDown(false);
+
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_DPAD_LEFT, state, changed);
+	if (state)
+		movement->turnLeft(true);
+	else if (changed)
+		movement->turnLeft(false);
+
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_DPAD_RIGHT, state, changed);
+	if (state)
+		movement->turnRight(true);
+	else if (changed)
+		movement->turnRight(false);
+
+
+	// == Cross
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_A, state, changed);
+	if (state && changed)
+		movement->toggleMountMode();
+
+	// == Circle
+	bool pressed;
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_B, pressed, changed);
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_LEFTSTICK, state, changed);
+	pressed |= state;
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_RIGHTSTICK, state, changed);
+	pressed |= state;
+	movement->moveSlow(pressed);
+
+	// == Square
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_X, state, changed);
+	if (state && changed)
+		movement->autoZoomOut();
+	// == Triangle
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_Y, state, changed);
+	if (state && changed)
+		core->setTimeNow();
+
+
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_LEFTSHOULDER, state, changed);
+	if (state && changed)
+		core->decreaseTimeSpeed();
+
+	getButtonStateChange(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, state, changed);
+	if (state && changed)
+		core->increaseTimeSpeed();
+}
+
+void
+JoystickSupport::getButtonStateChange(const SDL_GameControllerButton& button,
+                                      bool& state,
+                                      bool& changed)
+{
+	state = SDL_GameControllerGetButton(activeGamepad, button);
+	changed = (gamepadStates[button] != state);
+	gamepadStates[button] = state;
 }
 
 void
