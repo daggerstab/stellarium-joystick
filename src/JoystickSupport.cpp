@@ -367,11 +367,11 @@ JoystickSupport::handleJoystickHats(StelCore* core)
 
 void
 JoystickSupport::interpretAsHorizontalMovement(StelCore* core,
-                                     const Sint16& xAxis)
+                                               const Sint16& xAxis)
 {
 	StelMovementMgr* movement = core->getMovementMgr();
 
-	if (xAxis < (-axisThreshold))
+	if (xAxis < -axisThreshold)
 		movement->turnLeft(true);
 	else if (xAxis > axisThreshold)
 		movement->turnRight(true);
