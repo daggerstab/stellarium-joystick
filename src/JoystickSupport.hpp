@@ -58,19 +58,29 @@ private:
 	//! Lists all connected devices and their properties in the log.
 	//! Mostly a debugging function.
 	void printDeviceDescriptions();
+
+	//! Makes the selected device the currently active device.
+	//! Populates the necessary fields. If a device is active, it's closed,
+	//! even if it's the same one. If the device cannot be opened,
+	//! #activeJoystick is set to null.
+	//! @param deviceIndex is the logical device index as used in SDL.
+	bool openDevice(int deviceIndex);
+	//! Closes the currently active device, e.g. because it's disconnected.
+	void closeDevice();
+
 	//! Reads the current state of joystick axes and acts accordingly.
-	//! Requires an open device in #joystick.
+	//! Requires an open device in #activeJoystick.
 	void handleJoystickAxes(StelCore* core);
 	//! Reads the current state of joystick balls and acts accordingly.
 	//! @warning Not implemented, as I have no way to test it.
 	void handleJoystickBalls(StelCore* core);
 	//! Reads the current state of joystick buttons and acts accordingly.
-	//! Requires an open device in #joystick.
+	//! Requires an open device in #activeJoystick.
 	void handleJoystickButtons(StelCore* core);
 	//! Reads the current state of joystick hat switches and acts accordingly.
 	//! Gamepad direction buttons (the up/down/left/right quartet) are
 	//! often interpreted as hat switches.
-	//! Requires an open device in #joystick.
+	//! Requires an open device in #activeJoystick.
 	void handleJoystickHats(StelCore* core);
 
 	//! Interprets an axis value as indicating horizontal movement direction.
@@ -90,8 +100,12 @@ private:
 	// Temporary flag - prevents repeated output of device descriptions.
 	bool devicesDescribed;
 
-	//! The current active device, NULL if none is opened.
-	SDL_Joystick* joystick;
+	//! The current active device, null if none is opened.
+	SDL_Joystick* activeJoystick;
+	//! The currently active gamepad, null if the active device is not one.
+	//! A value implies that #activeJoystick is not null and contains
+	//! the underlying joystick device.
+	SDL_GameController* activeGamepad;
 
 	//! For now, threshold/deadzone for all joystick axes.
 	//! Axis values in the interval [-threshold;threshold] are ignored.

@@ -47,7 +47,10 @@ JoystickPluginInterface::getPluginInfo() const
 
 
 
-JoystickSupport::JoystickSupport() : initialized(false), joystick(NULL)
+JoystickSupport::JoystickSupport() :
+    initialized(false),
+    activeJoystick(NULL),
+    activeGamepad(NULL)
 {
 	setObjectName("JoystickSupport");
 
@@ -107,10 +110,9 @@ JoystickSupport::init()
 void
 JoystickSupport::deinit()
 {
-	if (joystick)
+	if (activeJoystick)
 	{
-		SDL_JoystickClose(joystick);
-		joystick = NULL;
+		closeDevice();
 	}
 	if (initialized)
 		SDL_Quit();
@@ -131,10 +133,9 @@ JoystickSupport::update(double deltaTime)
 	}
 	if (deviceCount == 0)
 	{
-		if (joystick)
+		if (activeJoystick)
 		{
-			SDL_JoystickClose(joystick);
-			joystick = NULL;
+			closeDevice();
 		}
 		return;
 	}
@@ -148,28 +149,19 @@ JoystickSupport::update(double deltaTime)
 
 	// TODO: For now assuming that we'll only use joystick 0
 	int index = 0;
-	if (joystick == NULL)
+	if (activeJoystick == NULL)
 	{
-		joystick = SDL_JoystickOpen(index);
-		if (joystick == NULL)
-		{
-			qWarning() << "JoystickSupport: unable to open device" << index
-			           << SDL_GetError();
-			return;
-		}
-
-		// TODO: There will be more of these, put them in a function.
-		hatStates.fill(SDL_HAT_CENTERED, SDL_JoystickNumHats(joystick));
-		buttonStates.fill(false, SDL_JoystickNumButtons(joystick));
+		openDevice(index);
 	}
 
-	if (SDL_JoystickGetAttached(joystick) == SDL_FALSE)
+	// Prevent attempts at reading from a detached device.
+	if (SDL_JoystickGetAttached(activeJoystick) == SDL_FALSE)
 	{
-		SDL_JoystickClose(joystick);
-		joystick = NULL;
+		closeDevice();
+		qWarning() << "Joystick Support: device" << index << "disconnected?";
 	}
 
-	if (joystick)
+	if (activeJoystick)
 	{
 		SDL_JoystickUpdate();
 		//SDL_GameControllerUpdate();
@@ -242,18 +234,65 @@ JoystickSupport::printDeviceDescriptions()
 	}
 }
 
+bool
+JoystickSupport::openDevice(int deviceIndex)
+{
+	if (activeJoystick)
+		closeDevice();
+
+	if (SDL_IsGameController(deviceIndex))
+	{
+		activeGamepad = SDL_GameControllerOpen(deviceIndex);
+		activeJoystick = SDL_GameControllerGetJoystick(activeGamepad);
+		if (activeJoystick == NULL)
+		{
+			SDL_GameControllerClose(activeGamepad);
+			activeGamepad = NULL;
+		}
+	}
+	else
+		activeJoystick = SDL_JoystickOpen(deviceIndex);
+
+	if (activeJoystick == NULL)
+	{
+		qWarning() << "JoystickSupport: unable to open device" << deviceIndex
+		           << SDL_GetError();
+		return false;
+	}
+
+	// Initialize various "previous state" holders
+	hatStates.fill(SDL_HAT_CENTERED, SDL_JoystickNumHats(activeJoystick));
+	buttonStates.fill(false, SDL_JoystickNumButtons(activeJoystick));
+
+	return true;
+}
+
+void
+JoystickSupport::closeDevice()
+{
+	if (activeGamepad)
+	{
+		SDL_GameControllerClose(activeGamepad);
+		activeGamepad = NULL;
+	}
+	else if (activeJoystick)
+		SDL_JoystickClose(activeJoystick);
+
+	activeJoystick = NULL;
+}
+
 void JoystickSupport::handleJoystickAxes(StelCore* core)
 {
-	Q_ASSERT(joystick);
+	Q_ASSERT(activeJoystick);
 	Q_ASSERT(core);
 
-	int axesCount = SDL_JoystickNumAxes(joystick);
+	int axesCount = SDL_JoystickNumAxes(activeJoystick);
 	if (axesCount < 1)
 		return;
 	QVector<Sint16> axisValues(axesCount, 0);
 	for (int i = 0; i < axesCount; i++)
 	{
-		axisValues[i] = SDL_JoystickGetAxis(joystick, i);
+		axisValues[i] = SDL_JoystickGetAxis(activeJoystick, i);
 	}
 
 	if (axesCount == 1) // Some kind of paddle?
@@ -275,13 +314,13 @@ void JoystickSupport::handleJoystickAxes(StelCore* core)
 void
 JoystickSupport::handleJoystickButtons(StelCore* core)
 {
-	Q_ASSERT(joystick);
+	Q_ASSERT(activeJoystick);
 	Q_ASSERT(core);
 	StelMovementMgr* movement = core->getMovementMgr();
 
 	for (int i = 0; i < buttonStates.count(); i++)
 	{
-		bool state = (SDL_JoystickGetButton(joystick, i) == 1);
+		bool state = (SDL_JoystickGetButton(activeJoystick, i) == 1);
 		bool prevState = buttonStates[i];
 
 		// Some buttons trigger one-time events, others control a state.
@@ -308,12 +347,12 @@ JoystickSupport::handleJoystickButtons(StelCore* core)
 void
 JoystickSupport::handleJoystickHats(StelCore* core)
 {
-	Q_ASSERT(joystick);
+	Q_ASSERT(activeJoystick);
 	Q_ASSERT(core);
 	StelMovementMgr* movement = core->getMovementMgr();
 	for (int i = 0; i < hatStates.count(); i++)
 	{
-		Uint8 state = SDL_JoystickGetHat(joystick, i);
+		Uint8 state = SDL_JoystickGetHat(activeJoystick, i);
 
 		// This results in discrete movement (one button press, one step) :))
 //		if (hatStates[i] == state)
