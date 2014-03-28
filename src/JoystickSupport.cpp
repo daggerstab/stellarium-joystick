@@ -83,10 +83,11 @@ JoystickSupport::init()
 	// For debugging:
 	devicesDescribed = false;
 
-	// TODO: Disable joystick/gamepad event handling?
+	// Disable event handling - we can't use SDL's event queue
 	SDL_JoystickEventState(SDL_IGNORE);
 	SDL_GameControllerEventState(SDL_IGNORE);
 
+	// Load gamepad database
 	QString dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
 	                                       StelFileMgr::File);
 	if (!dbPath.isEmpty())
@@ -193,7 +194,7 @@ JoystickSupport::printDeviceDescriptions()
 		bool isGamepad = SDL_IsGameController(i);
 		qDebug() << "Device" << i << ':'
 		         << QString(SDL_JoystickNameForIndex(i))
-		         << (isGamepad ? "is a game controller" : "is a joystick");
+		         << (isGamepad ? "is a game controller." : "is a joystick.");
 
 		SDL_GameController* gamepad = NULL;
 		SDL_Joystick* joystick = NULL;
@@ -205,9 +206,6 @@ JoystickSupport::printDeviceDescriptions()
 				qDebug() << "JoystickSupport: unable to open device" << i;
 				continue;
 			}
-
-			// TODO: Load and display gamepad bindings?
-
 			joystick = SDL_GameControllerGetJoystick(gamepad);
 		}
 		else
@@ -221,11 +219,14 @@ JoystickSupport::printDeviceDescriptions()
 			continue;
 		}
 
-		qDebug() << SDL_JoystickName(joystick) << "has:" << endl
-		         << SDL_JoystickNumAxes(joystick) << "axes" << endl
-		         << SDL_JoystickNumBalls(joystick) << "balls" << endl
-		         << SDL_JoystickNumButtons(joystick) << "buttons" << endl
-		         << SDL_JoystickNumHats(joystick) << "hats";
+		qDebug() << "It has"
+		         << SDL_JoystickNumAxes(joystick) << "axes,"
+		         << SDL_JoystickNumBalls(joystick) << "balls,"
+		         << SDL_JoystickNumButtons(joystick) << "buttons,"
+		         << SDL_JoystickNumHats(joystick) << "hats.";
+
+		if (isGamepad)
+			qDebug() << "Mapping:" << SDL_GameControllerMapping(gamepad);
 
 		if (gamepad)
 			SDL_GameControllerClose(gamepad);
