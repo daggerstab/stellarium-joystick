@@ -18,7 +18,8 @@ The plug-in will aim to work on the same major platforms as Stellarium (Linux,
 Mac OS X, Windows, and even BSD), but in practice:
  - Windows: it's very likely that the next release of Stellarium will not
  support dynamic plug-ins due to the way it's built (MSVC does not export all
- symbols like gcc does by default), unless a lot of work is done.
+ symbols like gcc does by default), unless a lot of work is done. At least
+ one previous version of Stellarium (0.12.4) is supported though.
  - Mac OS X: I don't have anything running that, so any development will have to
  be done by an outsider.
  - Linux: the plug-in is currently developed on Ubuntu 13.10, but there's no
@@ -30,18 +31,38 @@ Development
 
 This is a dynamic Stellarium plug-in (as opposed to the static, built-in default
 plug-ins that are distributed with Stellarium). Since Stellarium lacks a proper
-development package, you'll need Stellarium's source code to build the plug-in,
-and it's likely that the resulting binary will be compatible only with your
-Stellarium build. (Yes, that project is a mess.)
+development package, in addition to the Stellarium binaries, to build
+the plug-in you'll need Stellarium's source code for the same version.
+On Windows, the plug-in will be able to link against libStelMain.dll only if
+Stellarium had been compiled with MinGW/gcc. (Luckily, this covers 0.12.4 and
+most recent version before that.) In all cases, it's very likely that
+the resulting plug-in binary will be compatible only with the version of
+Stellarium it was built against.
 
-As this is a work-in-progress, it's based on the current Stellarium development
-version - around revision 6600 in the 'trunk' branch in Stellarium's Bazaar
-repository on Launchpad (https://code.launchpad.net/stellarium).
+As this project is a work-in-progress, the code is mainly based on the current
+Stellarium development version - around revision 6600 in the 'trunk' branch in
+Stellarium's code repository. See https://code.launchpad.net/stellarium
 
-The plug-in  has the same building dependencies as Stellarium (Qt 5.2 for the
-development version, etc.) and SDL2 (version 2.0.1 or later; available from
-http://www.libsdl.org/). CMake is necessary to process the build script.
-Documentation will be based on Doxygen.
+Nevertheless, there is some support for previous versions - so far, it has been
+successfully tested with 0.12.4 on Windows XP.
+
+The plug-in  has the same build dependencies as Stellarium. Unfortunately,
+it's necessary to use (almost) the same versions of the Qt libraries and
+the same compiler as the ones used for the target version of Stellarium.
+Fortunately, there seems to be some interoperability - patch versions are
+supposed to be binary compatible (i.e. all 4.8.* versions are compatible,
+all gcc 4.6.* versions use the same ABI, etc.).
+
+Required:
+ - for the development version, Qt 5.1 at this point (since you probably used
+ the same libs for your Stellarium build, it's not a problem)
+ - for Stellarium 0.12.4, on Windows, Qt 4.8.5 and MinGW with gcc 4.6
+ (from the original MinGW project?) Installing the latter is somewhat difficult.
+ - SDL2, version 2.0.1 or later; available from http://www.libsdl.org/ - you
+ can use the pre-compiled development package on Windows
+
+ CMake is necessary to process the build script.
+ Source code documentation is based on Doxygen.
 
 Before building, two paths need to be passed to CMake:
 - STELLARIUM_SOURCE_DIR, the path to the src/ directory in Stellarium's
@@ -51,6 +72,9 @@ executable, such as the build directory of a Stellarium build-from-source, or,
 Stellarium's installation directory (if built on Windows with MinGW).
 
 You can also pass a few optional parameters:
+- STELLARIUM_VERSION is required when building the plug-in for a specific
+version of Stellarium and should contain the version number. By default,
+the development version is assumed. Example use: -DSTELLARIUM_VERSION=0.12.4 
 - SDL2_DIR, the path to the main installation directory of SDL2
 (if you don't have the environmental variable SDLDIR set)
 - if you pass an empty value of CMAKE_INSTALL_PREFIX, the script will change it
