@@ -10,6 +10,8 @@ set(JOYSTICKSUPPORT_VERSION_PATCH 0)
 set(JOYSTICKSUPPORT_VERSION ${JOYSTICKSUPPORT_VERSION_MAJOR}.${JOYSTICKSUPPORT_VERSION_MINOR}.${JOYSTICKSUPPORT_VERSION_PATCH})
 add_definitions(-DJOYSTICKSUPPORT_VERSION_STRING="${JOYSTICKSUPPORT_VERSION}")
 
+
+
 # Required packages
 if(STELLARIUM_VERSION VERSION_GREATER "0.12.4") # Everything after that requires Qt 5
   find_package(Qt5Core REQUIRED)
@@ -40,6 +42,8 @@ endif(NOT SDL2_INCLUDE_DIR)
 find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
                                   PATHS ${CMAKE_SOURCE_DIR}
                                   NO_DEFAULT_PATH)
+
+
 
 # Stellarium paths and defines
 if(NOT STELLARIUM_SOURCE_DIR)
@@ -78,6 +82,8 @@ if(DEFINED STELLARIUM_VERSION)
   endif()
 endif()
 
+
+
 # Source code
 include_directories(${STELLARIUM_SOURCE_DIR}
                     ${STELLARIUM_SOURCE_DIR}/core
@@ -92,6 +98,7 @@ link_directories(${STELLARIUM_BINARY_DIR})
 
 set(JoystickSupport_SRCS src/JoystickSupport.hpp
                          src/JoystickSupport.cpp)
+
 
 
 # Building the binary
@@ -114,6 +121,8 @@ elseif(WIN32)
   endif()
 endif()
 
+
+
 # Installation
 if(NOT CMAKE_INSTALL_PREFIX)
   if(UNIX AND NOT APPLE)
@@ -131,5 +140,23 @@ install(FILES ${GAME_CONTROLLER_DB_PATH}
                                 DESTINATION modules/JoystickSupport/ OPTIONAL)
 
 
+
 # Packaging
-# TODO
+# Re-run CMake explicitly after modifying some of these, the changes will not
+# take effect if CMake is invoked implicitly by make.
+set(CPACK_PACKAGE_VERSION_MAJOR ${JOYSTICKSUPPORT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${JOYSTICKSUPPORT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${JOYSTICKSUPPORT_VERSION_PATCH})
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "stellarium-joystick-${JOYSTICKSUPPORT_VERSION}")
+set(CPACK_GENERATOR "")           # No binary package should be built with CPack
+if(WIN32)
+  set(CPACK_SOURCE_GENERATOR "ZIP")
+else()
+  set(CPACK_SOURCE_GENERATOR "TGZ")
+endif()
+set(CPACK_SOURCE_STRIP_FILES TRUE)
+set(CPACK_SOURCE_IGNORE_FILES "/.git*"
+                              ${PROJECT_BINARY_DIR}
+                              "/CMakeLists.txt.user$"
+                              "/gamecontrollerdb.txt$")
+include(CPack)
