@@ -48,8 +48,14 @@ Before building, two paths need to be passed to CMake:
 source package/version control working copy. 
 - STELLARIUM_BINARY_DIR, the path to a directory that contains Stellarium's
 executable, such as the build directory of a Stellarium build-from-source, or,
-hopefully, Stellarium's installation directory (the latter is untested and
-very probably, not yet supported)
+Stellarium's installation directory (if built on Windows with MinGW).
+
+You can also pass a few optional parameters:
+- SDL2_DIR, the path to the main installation directory of SDL2
+(if you don't have the environmental variable SDLDIR set)
+- if you pass an empty value of CMAKE_INSTALL_PREFIX, the script will change it
+to a suitable value, so running "make install" will install the plug-in in
+Stellarium's user data directory.
 
 If you game controller is not among the small number of controllers recognized
 by SDL, you can augment the database by dropping a custom gamecontrollersdb.txt
