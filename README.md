@@ -79,7 +79,9 @@ the development version is assumed. Example use: -DSTELLARIUM_VERSION=0.12.4
 (if you don't have the environmental variable SDLDIR set)
 - if you pass an empty value of CMAKE_INSTALL_PREFIX, the script will change it
 to a suitable value, so running "make install" will install the plug-in in
-Stellarium's user data directory.
+Stellarium's user data directory. Alternatively, on Windows, setting it to
+Stellarium's installation directory (e.g. C:\Program Files\Stellarium)
+will install the plug-in there, allowing all users to use the same installation. 
 
 If you game controller is not among the small number of controllers recognized
 by SDL, you can augment the database by dropping a custom gamecontrollersdb.txt

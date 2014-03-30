@@ -112,16 +112,18 @@ endif()
 # Installation
 if(NOT CMAKE_INSTALL_PREFIX)
   if(UNIX AND NOT APPLE)
-    set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.stellarium/modules/)
+    set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.stellarium/)
   endif(UNIX AND NOT APPLE)
   if(WIN32)
     string(REPLACE "\\" "/" CMAKE_INSTALL_PREFIX $ENV{APPDATA})
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/Stellarium/modules)
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/Stellarium/)
   endif(WIN32)
 endif(NOT CMAKE_INSTALL_PREFIX)
 
-install(TARGETS JoystickSupport LIBRARY DESTINATION JoystickSupport/)
-install(FILES ${GAME_CONTROLLER_DB_PATH} DESTINATION JoystickSupport/ OPTIONAL)
+install(TARGETS JoystickSupport LIBRARY
+                                DESTINATION modules/JoystickSupport/)
+install(FILES ${GAME_CONTROLLER_DB_PATH}
+                                DESTINATION modules/JoystickSupport/ OPTIONAL)
 
 
 # Packaging
