@@ -36,7 +36,7 @@ find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
                                   PATHS ${CMAKE_SOURCE_DIR}
                                   NO_DEFAULT_PATH)
 
-# Stellarium paths
+# Stellarium paths and defines
 if(NOT STELLARIUM_SOURCE_DIR)
   message(FATAL_ERROR "STELLARIUM_SOURCE_DIR must contain the path to the Stellarium /src directory")
 endif(NOT STELLARIUM_SOURCE_DIR)
@@ -53,6 +53,25 @@ if(UNIX AND NOT APPLE)
                         IMPORTED_LOCATION /usr/local/lib/libSDL2.a)
 endif()
 
+if(DEFINED STELLARIUM_VERSION)
+  string(REPLACE "." "_" STELLARIUM_VERSION_UNDERLINED ${STELLARIUM_VERSION})
+  string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+.*" "\\1"
+                       STELLARIUM_VERSION_MAJOR "${STELLARIUM_VERSION}")
+  string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+.*" "\\1"
+                       STELLARIUM_VERSION_MINOR "${STELLARIUM_VERSION}")
+  string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1"
+                       STELLARIUM_VERSION_PATCH "${STELLARIUM_VERSION}")
+  add_definitions(-DSTELLARIUM_${STELLARIUM_VERSION_UNDERLINED}
+                  -DSTELLARIUM_VERSION_MAJOR=${STELLARIUM_VERSION_MAJOR}
+                  -DSTELLARIUM_VERSION_MINOR=${STELLARIUM_VERSION_MINOR}
+                  -DSTELLARIUM_VERSION_PATCH=${STELLARIUM_VERSION_PATCH})
+
+  # Or the alternative method - check the version in CMake for specific features
+  if(${STELLARIUM_VERSION} VERSION_LESS "0.13.0")
+    # StelFileMgr throws exceptions when a file is not found
+    add_definitions(-DSTELFILEMGR_THROWS=1)
+  endif()
+endif()
 
 # Source code
 include_directories(${STELLARIUM_SOURCE_DIR}
@@ -71,11 +90,6 @@ set(JoystickSupport_SRCS src/JoystickSupport.hpp
 
 
 # Building the binary
-if(DEFINED STELLARIUM_VERSION)
-  string(REPLACE "." "_" STELLARIUM_VERSION_UNDERLINED ${STELLARIUM_VERSION})
-  add_definitions(-DSTELLARIUM_${STELLARIUM_VERSION_UNDERLINED})
-endif()
-
 add_library(JoystickSupport MODULE ${JoystickSupport_SRCS})
 set_target_properties(JoystickSupport PROPERTIES AUTOMOC TRUE)
 if(UNIX AND NOT APPLE)
