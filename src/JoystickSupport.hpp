@@ -137,7 +137,9 @@ private:
 class JoystickPluginInterface : public QObject, StelPluginInterface
 {
 	Q_OBJECT
+#if QT_VERSION >= 0x050000
 	Q_PLUGIN_METADATA(IID "stellarium.StelPluginInterface/2.0")
+#endif
 	Q_INTERFACES(StelPluginInterface)
 
 public:

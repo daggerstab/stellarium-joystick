@@ -45,6 +45,10 @@ JoystickPluginInterface::getPluginInfo() const
 	return info;
 }
 
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(JoystickSupport, JoystickPluginInterface);
+#endif
+
 
 
 JoystickSupport::JoystickSupport() :
