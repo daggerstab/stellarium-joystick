@@ -12,12 +12,12 @@ find_package(Qt5OpenGL REQUIRED) # For StelModule???
 
 set (SDL_BUILDING_LIBRARY TRUE) # Otherwise SDL will insist on adding its main()
 #find_package(SDL 2.0.1 REQUIRED) # This doesn't work (for now) so...
-find_library(SDL2_LIBRARY NAMES SDL2 HINTS ENV SDLDIR PATH_SUFFIXES lib)
+find_library(SDL2_LIBRARY NAMES SDL2 HINTS ${SDL2_DIR} ENV SDLDIR PATH_SUFFIXES lib)
 if(NOT SDL2_LIBRARY)
   message(FATAL_ERROR "Unable to find SDL2 library files.")
 endif(NOT SDL2_LIBRARY)
 find_path(SDL2_INCLUDE_DIR SDL.h
-          HINTS ENV SDLDIR PATHS /usr/local/ PATH_SUFFIXES include/SDL2 include)
+          HINTS ${SDL2_DIR} ENV SDLDIR PATHS /usr/local/ PATH_SUFFIXES include/SDL2 include)
 if(NOT SDL2_INCLUDE_DIR)
   message(FATAL_ERROR "Unable to find SDL2 include directory.")
 endif(NOT SDL2_INCLUDE_DIR)
