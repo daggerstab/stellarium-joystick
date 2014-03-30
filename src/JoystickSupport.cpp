@@ -41,7 +41,10 @@ JoystickPluginInterface::getPluginInfo() const
 	info.authors = "Bogdan Marinov";
 	info.contact = "daggerstab@gmail.com";
 	info.description = "Basic support for joysticks and gamepads (joypads, video game controllers).";
+// The version field was introduced in???
+#if (STELLARIUM_VERSION_MAJOR == 0 && STELLARIUM_VERSION_MINOR > 12)
 	info.version = "0.0.2"; // TODO: Handle version numbers in CMake?
+#endif
 	return info;
 }
 
@@ -94,8 +97,19 @@ JoystickSupport::init()
 	SDL_GameControllerEventState(SDL_IGNORE);
 
 	// Load gamepad database
-	QString dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
+	QString dbPath;
+#ifdef STELFILEMGR_THROWS
+	try
+	{
+#endif
+	dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
 	                                       StelFileMgr::File);
+#ifdef STELFILEMGR_THROWS
+	} catch (std::runtime_error& e)
+	{
+		// Since this is expected for now, do nothing.
+	}
+#endif
 	if (!dbPath.isEmpty())
 	{
 		qDebug() << "JoystickSupport: loading game controller database:"
