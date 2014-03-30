@@ -43,7 +43,7 @@ JoystickPluginInterface::getPluginInfo() const
 	info.description = "Basic support for joysticks and gamepads (joypads, video game controllers).";
 // The version field was introduced in???
 #if (STELLARIUM_VERSION_MAJOR == 0 && STELLARIUM_VERSION_MINOR > 12)
-	info.version = "0.0.2"; // TODO: Handle version numbers in CMake?
+	info.version = JOYSTICKSUPPORT_VERSION_STRING;
 #endif
 	return info;
 }

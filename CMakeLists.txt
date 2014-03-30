@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 2.8.11) # 2.8.11 is recommended for Qt 5.*
 
 
 # Project name and properties
-project(JoystickSupport) # TODO: Unnecessary?
+project(JoystickSupport)
 
+set(JOYSTICKSUPPORT_VERSION_MAJOR 0)
+set(JOYSTICKSUPPORT_VERSION_MINOR 1)
+set(JOYSTICKSUPPORT_VERSION_PATCH 0)
+set(JOYSTICKSUPPORT_VERSION ${JOYSTICKSUPPORT_VERSION_MAJOR}.${JOYSTICKSUPPORT_VERSION_MINOR}.${JOYSTICKSUPPORT_VERSION_PATCH})
+add_definitions(-DJOYSTICKSUPPORT_VERSION_STRING="${JOYSTICKSUPPORT_VERSION}")
 
 # Required packages
 if(STELLARIUM_VERSION VERSION_GREATER "0.12.4") # Everything after that requires Qt 5
