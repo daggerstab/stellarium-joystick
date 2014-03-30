@@ -6,9 +6,17 @@ project(JoystickSupport) # TODO: Unnecessary?
 
 
 # Required packages
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED) # For QImage even if there's no GUI.
-find_package(Qt5OpenGL REQUIRED) # For StelModule???
+if(STELLARIUM_VERSION VERSION_GREATER "0.12.4") # Everything after that requires Qt 5
+  find_package(Qt5Core REQUIRED)
+  find_package(Qt5Gui REQUIRED) # For QImage even if there's no GUI.
+  find_package(Qt5OpenGL REQUIRED) # For StelModule???
+  set(QT_LINK_PARAMETERS Qt5::Core Qt5::Gui Qt5::OpenGL)
+else()
+  set(QT_MIN_VERSION "4.8.0")
+  find_package(Qt4 REQUIRED)
+  include(${QT_USE_FILE})
+  set(QT_LINK_PARAMETERS ${QT_LIBRARIES})
+endif()
 
 set (SDL_BUILDING_LIBRARY TRUE) # Otherwise SDL will insist on adding its main()
 #find_package(SDL 2.0.1 REQUIRED) # This doesn't work (for now) so...
@@ -63,17 +71,21 @@ set(JoystickSupport_SRCS src/JoystickSupport.hpp
 
 
 # Building the binary
-SET(CMAKE_CXX_FLAGS -Wall)
+if(DEFINED STELLARIUM_VERSION)
+  string(REPLACE "." "_" STELLARIUM_VERSION_UNDERLINED ${STELLARIUM_VERSION})
+  add_definitions(-DSTELLARIUM_${STELLARIUM_VERSION_UNDERLINED})
+endif()
+
 add_library(JoystickSupport MODULE ${JoystickSupport_SRCS})
 set_target_properties(JoystickSupport PROPERTIES AUTOMOC TRUE)
 if(UNIX AND NOT APPLE)
   target_link_libraries(JoystickSupport
-                        Qt5::Core Qt5::Gui Qt5::OpenGL
+                        ${QT_LINK_PARAMETERS}
                         #${SDL2_LIBRARY})
                         SDL2) # Static linking - it's a target name.
 elseif(WIN32)
   target_link_libraries(JoystickSupport
-                        Qt5::Core Qt5::Gui Qt5::OpenGL
+                        ${QT_LINK_PARAMETERS}
                         ${SDL2_LIBRARY}
                         stelMain)
   if(MSVC)
