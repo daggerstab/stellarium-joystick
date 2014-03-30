@@ -10,10 +10,16 @@ set(JOYSTICKSUPPORT_VERSION_PATCH 0)
 set(JOYSTICKSUPPORT_VERSION ${JOYSTICKSUPPORT_VERSION_MAJOR}.${JOYSTICKSUPPORT_VERSION_MINOR}.${JOYSTICKSUPPORT_VERSION_PATCH})
 add_definitions(-DJOYSTICKSUPPORT_VERSION_STRING="${JOYSTICKSUPPORT_VERSION}")
 
+# By default, the plug-in is built against the development version...
+# so ensure that the default value will be greater than any possible comparison.
+set(STELLARIUM_VERSION 0.99.0 CACHE STRING
+                       "Version number of the targeted Stellarium release")
+
 
 
 # Required packages
-if(STELLARIUM_VERSION VERSION_GREATER "0.12.4") # Everything after that requires Qt 5
+if(${STELLARIUM_VERSION} VERSION_GREATER "0.12.4")
+  # Everything after that version requires Qt 5
   find_package(Qt5Core REQUIRED)
   find_package(Qt5Gui REQUIRED) # For QImage even if there's no GUI.
   find_package(Qt5OpenGL REQUIRED) # For StelModule???
@@ -62,24 +68,22 @@ if(UNIX AND NOT APPLE)
                         IMPORTED_LOCATION /usr/local/lib/libSDL2.a)
 endif()
 
-if(DEFINED STELLARIUM_VERSION)
-  string(REPLACE "." "_" STELLARIUM_VERSION_UNDERLINED ${STELLARIUM_VERSION})
-  string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+.*" "\\1"
-                       STELLARIUM_VERSION_MAJOR "${STELLARIUM_VERSION}")
-  string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+.*" "\\1"
-                       STELLARIUM_VERSION_MINOR "${STELLARIUM_VERSION}")
-  string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1"
-                       STELLARIUM_VERSION_PATCH "${STELLARIUM_VERSION}")
-  add_definitions(-DSTELLARIUM_${STELLARIUM_VERSION_UNDERLINED}
-                  -DSTELLARIUM_VERSION_MAJOR=${STELLARIUM_VERSION_MAJOR}
-                  -DSTELLARIUM_VERSION_MINOR=${STELLARIUM_VERSION_MINOR}
-                  -DSTELLARIUM_VERSION_PATCH=${STELLARIUM_VERSION_PATCH})
+string(REPLACE "." "_" STELLARIUM_VERSION_UNDERLINED ${STELLARIUM_VERSION})
+string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+.*" "\\1"
+                     STELLARIUM_VERSION_MAJOR "${STELLARIUM_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+.*" "\\1"
+                     STELLARIUM_VERSION_MINOR "${STELLARIUM_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1"
+                     STELLARIUM_VERSION_PATCH "${STELLARIUM_VERSION}")
+add_definitions(-DSTELLARIUM_${STELLARIUM_VERSION_UNDERLINED}
+                -DSTELLARIUM_VERSION_MAJOR=${STELLARIUM_VERSION_MAJOR}
+                -DSTELLARIUM_VERSION_MINOR=${STELLARIUM_VERSION_MINOR}
+                -DSTELLARIUM_VERSION_PATCH=${STELLARIUM_VERSION_PATCH})
 
-  # Or the alternative method - check the version in CMake for specific features
-  if(${STELLARIUM_VERSION} VERSION_LESS "0.13.0")
-    # StelFileMgr throws exceptions when a file is not found
-    add_definitions(-DSTELFILEMGR_THROWS=1)
-  endif()
+# Or the alternative method - check the version in CMake for specific features
+if(${STELLARIUM_VERSION} VERSION_LESS "0.13.0")
+  # StelFileMgr throws exceptions when a file is not found
+  add_definitions(-DSTELFILEMGR_THROWS=1)
 endif()
 
 
