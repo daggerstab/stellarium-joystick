@@ -120,8 +120,8 @@ Required:
  - SDL2, version 2.0.1 or later; available from http://www.libsdl.org/ - you
  can use the pre-compiled development package on Windows
 
- CMake is necessary to process the build script.
- Source code documentation is based on Doxygen.
+CMake is necessary to process the build script.
+Source code documentation is based on Doxygen.
 
 Before building, two paths need to be passed to CMake:
 - STELLARIUM_SOURCE_DIR, the path to the src/ directory in Stellarium's
