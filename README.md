@@ -94,7 +94,7 @@ development package, in addition to the Stellarium binaries, to build
 the plug-in you'll need Stellarium's source code for the same version.
 On Windows, the plug-in will be able to link against libStelMain.dll only if
 Stellarium had been compiled with MinGW/gcc. (Luckily, this covers 0.12.4 and
-most recent version before that.) In all cases, it's very likely that
+the most recent versions before that.) In all cases, it's very likely that
 the resulting plug-in binary will be compatible only with the version of
 Stellarium it was built against.
 
