@@ -55,6 +55,14 @@ public:
 	virtual void update(double deltaTime);
 	virtual bool configureGui(bool show);
 
+	//! Loads the SDL game controller database if such file exists.
+	//! The file is expexted to be called "gamecontrollerdb.txt" and to be found
+	//! in the modules/JoystickSupport/ sub-directory - either of Stellarium's
+	//! installation directory, or the user data directory.
+	//! @returns true if the file was found successfully, even if parsing it
+	//! failed.
+	bool loadGamepadDatabase();
+
 private:
 	//! Lists all connected devices and their properties in the log.
 	//! Mostly a debugging function.

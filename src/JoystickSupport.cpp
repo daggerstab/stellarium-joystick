@@ -97,34 +97,9 @@ JoystickSupport::init()
 	SDL_GameControllerEventState(SDL_IGNORE);
 
 	// Load gamepad database
-	QString dbPath;
-#ifdef STELFILEMGR_THROWS
-	try
+	if (!loadGamepadDatabase())
 	{
-#endif
-	dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
-	                                       StelFileMgr::File);
-#ifdef STELFILEMGR_THROWS
-	} catch (std::runtime_error& e)
-	{
-		// Since this is expected for now, do nothing.
-	}
-#endif
-	if (!dbPath.isEmpty())
-	{
-		qDebug() << "JoystickSupport: loading game controller database:"
-		         << dbPath;
-		SDL_RWops* dbFileStream = SDL_RWFromFile(dbPath.toUtf8().data(), "rt");
-		if (dbFileStream)
-		{
-			// Second param indicates that the stream should be closed on finish
-			int count = SDL_GameControllerAddMappingsFromRW(dbFileStream, 1);
-			if (count > 0)
-				qDebug() << "JoystickSupport:" << count
-				         << "device descriptions loaded.";
-		}
-		else
-			qDebug() << "JoystickSupport: SDL error:" << SDL_GetError();
+		//TODO
 	}
 }
 
@@ -206,6 +181,42 @@ JoystickSupport::configureGui(bool show)
 	// TODO: Think of a way to make GUI more independent for all plugins.
 	Q_UNUSED(show);
 	return false; // For now there's no configuration window
+}
+
+bool JoystickSupport::loadGamepadDatabase()
+{
+	QString dbPath;
+#ifdef STELFILEMGR_THROWS
+	try
+	{
+#endif
+	dbPath = StelFileMgr::findFile("modules/JoystickSupport/gamecontrollerdb.txt",
+	                                       StelFileMgr::File);
+#ifdef STELFILEMGR_THROWS
+	} catch (std::runtime_error& e)
+	{
+		// Since this is expected for now, do nothing.
+	}
+#endif
+	if (dbPath.isEmpty())
+		return false;
+	else
+	{
+		qDebug() << "JoystickSupport: loading game controller database:"
+		         << dbPath;
+		SDL_RWops* dbFileStream = SDL_RWFromFile(dbPath.toUtf8().data(), "rt");
+		if (dbFileStream)
+		{
+			// Second param indicates that the stream should be closed on finish
+			int count = SDL_GameControllerAddMappingsFromRW(dbFileStream, 1);
+			if (count > 0)
+				qDebug() << "JoystickSupport:" << count
+				         << "device descriptions loaded.";
+		}
+		else
+			qDebug() << "JoystickSupport: SDL error:" << SDL_GetError();
+		return true;
+	}
 }
 
 void
