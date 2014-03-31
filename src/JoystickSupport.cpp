@@ -21,6 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StelFileMgr.hpp"
 
 #include <QDebug>
+#include <QFile>
 
 #include "StelApp.hpp"
 #include "StelCore.hpp"
@@ -99,7 +100,27 @@ JoystickSupport::init()
 	// Load gamepad database
 	if (!loadGamepadDatabase())
 	{
-		//TODO
+		qDebug() << "JoystickSupport: copying default database...";
+		QString path = StelFileMgr::getUserDir() + "/modules/JoystickSupport";
+		#ifdef STELFILEMGR_THROWS
+		try
+		{
+		#endif
+		StelFileMgr::makeSureDirExistsAndIsWritable(path);
+		#ifdef STELFILEMGR_THROWS
+		} catch (std::runtime_error& e)
+		{
+			qWarning() << "JoystickSupport: error creating data directory:"
+			           << e.what();
+		}
+		#endif
+		path.append("/gamecontrollerdb.txt");
+		QFile database(":/JoystickSupport/gamecontrollerdb.txt");
+		if (database.copy(path))
+			loadGamepadDatabase();
+		else
+			qWarning() << "JoystickSupport: error copying database:"
+			           << database.errorString();
 	}
 }
 

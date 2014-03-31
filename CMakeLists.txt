@@ -48,6 +48,14 @@ endif(NOT SDL2_INCLUDE_DIR)
 find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
                                   PATHS ${CMAKE_SOURCE_DIR}
                                   NO_DEFAULT_PATH)
+if(GAME_CONTROLLER_DB_PATH)
+  message(STATUS "Found game controller database: " ${GAME_CONTROLLER_DB_PATH})
+  if(${QT_VERSION_MAJOR} EQUAL 4)
+    qt4_add_resources(RESOURCES_SRCS resources.qrc)
+  else()
+    # TODO: Check Qt 5 compatibility
+  endif()
+endif()
 
 
 
@@ -106,7 +114,7 @@ set(JoystickSupport_SRCS src/JoystickSupport.hpp
 
 
 # Building the binary
-add_library(JoystickSupport MODULE ${JoystickSupport_SRCS})
+add_library(JoystickSupport MODULE ${JoystickSupport_SRCS} ${RESOURCES_SRCS})
 set_target_properties(JoystickSupport PROPERTIES AUTOMOC TRUE)
 if(UNIX AND NOT APPLE)
   target_link_libraries(JoystickSupport
@@ -140,8 +148,8 @@ endif(NOT CMAKE_INSTALL_PREFIX)
 
 install(TARGETS JoystickSupport LIBRARY
                                 DESTINATION modules/JoystickSupport/)
-install(FILES ${GAME_CONTROLLER_DB_PATH}
-                                DESTINATION modules/JoystickSupport/ OPTIONAL)
+#install(FILES ${GAME_CONTROLLER_DB_PATH}
+#                                DESTINATION modules/JoystickSupport/ OPTIONAL)
 
 
 

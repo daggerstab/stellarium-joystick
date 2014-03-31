@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/JoystickSupport">
+        <file>gamecontrollerdb.txt</file>
+    </qresource>
+</RCC>
