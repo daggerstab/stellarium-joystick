@@ -11,6 +11,64 @@ In very early stages of development. Current capabilities are very limited.
 As it requires an additional dependency (the Simple DirectMedia Layer (SDL)
 library), I've chosen to develop it as a stand-alone ("dynamic") plug-in.
 
+
+Features
+--------
+
+At this stage of development:
+ - the plug-in supports only one controlling device. If there are more than one
+ connected to the system, it will pick the first indexed by SDL.
+ - all controls are hard-coded. Customization is planned for the future.
+
+Joystick controls:
+ - the first two axes are assumed to be the X and Y axes and pan the view
+ - the third axis (throttle? yaw?), if present, controls zoom
+ - any hat switches, if present, pan the view
+ - button 1 (trigger?) toggles the mount mode (between alt-azimuth and
+ equatorial)
+ - holding down button 2 allows finer movement when panning and zooming,
+ similar to holding down SHIFT when using the keyboard.
+
+Gamepad controlls:
+ - the left analog stick (if present) pans the view
+ - vertical axis of the right analog stick (if present) controls zoom
+ - direction buttons pan the view
+ - the button quartet on the right side:
+    + the bottom button (X-cross or A) toggles the mount mode
+    + holding down the right button (Circle or B) allows finer movement
+    + the left button (Square or X) returns to the default zoom
+    + the top bottom (Triangle or Y) returns to the current time, which is
+    necessary, because...
+ - the left shoulder button slows down time, the right one speeds it up
+
+
+Configuration and customization
+-------------------------------
+
+At this stage of development, almost no configuration is possible.
+
+If your gamepad is not recognized as a gamepad, it's possible to update or 
+modify the database which identifies gamepads: the gamecontrollerdb.txt file.
+It is read from the plug-in's data directory (see below).
+
+You can download a copy of the SDL community-sourced database from its
+repository at GitHub: https://github.com/gabomdq/SDL_GameControllerDB
+The same page contains some instructions on how to get your gamepad's mappings
+if you use Steam. You can also download the latest version of the database and
+hope that your device is in it, directly from this link:
+https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt
+
+The plug-in keeps its files in the modules/JoystickSupport sub-directory of
+Stellarium's user directory. This means:
+ + C:\Users\UserName\AppData\Roaming\Stellarium\modules\JoystickSupport (on
+ Windows Vista, Windows 7 and presumably Windows 8)
+ + C:\Documents and Settings\UserName\Application Data\Stellarium\modules\JoystickSupport
+ (on Windows XP)
+ + $HOME/Library/Preferences/Stellarium/modules/JoystickSupport (on
+ Mac OS X)
+ + ~/.stellarium/modules/JoystickSupport (on Linux)
+
+
 Platforms
 ---------
 
@@ -25,6 +83,7 @@ Mac OS X, Windows, and even BSD), but in practice:
  - Linux: the plug-in is currently developed on Ubuntu 13.10, but there's no
  binary package available. In the future, there can be a PPA on Launchpad,
  and/or I can submit it to Debian, from where it will percolate down to Ubuntu.
+
 
 Development
 -----------
@@ -88,6 +147,7 @@ by SDL, you can augment the database by dropping a custom gamecontrollersdb.txt
 in the plug-in's directory. A community-maintained controller database
 can be found on Github: https://github.com/gabomdq/SDL_GameControllerDB
 A copy will be included by default in the package some time in the future.
+
 
 Installation
 ------------
