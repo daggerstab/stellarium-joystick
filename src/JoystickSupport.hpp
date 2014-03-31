@@ -31,6 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StelModule.hpp"
 
 class StelCore;
+class StelMovementMgr;
 
 //! Main class of the Joystick Support plug-in.
 //!
@@ -97,13 +98,15 @@ private:
 	//! Interprets an axis value as indicating horizontal movement direction.
 	//! This means azimuth or right ascension depending on the mount mode.
 	//! Negative is left (counterclockwise), positivive is right (clockwise).
-	void interpretAsHorizontalMovement(StelCore* core, const Sint16& xAxis);
+	void interpretAsHorizontalMovement(StelMovementMgr* movement,
+	                                   const Sint16& xAxis);
 	//! Interprets an axis value as indicating vertical movement direction.
 	//! This means altitude or declination depending on the mount mode.
 	//! Negative is "up", positive is "down".
-	void interpretAsVerticalMovement(StelCore* core, const Sint16& yAxis);
+	void interpretAsVerticalMovement(StelMovementMgr* movement,
+	                                 const Sint16& yAxis);
 	//! Interprets an axis value as indicating zooming direction (in or out).
-	void interpretAsZooming(StelCore* core, const Sint16& zoomAxis);
+	void interpretAsZooming(StelMovementMgr* movement, const Sint16& zoomAxis);
 
 	//! True if SDL was initialized correctly, if not - disables the plugin.
 	bool initialized;

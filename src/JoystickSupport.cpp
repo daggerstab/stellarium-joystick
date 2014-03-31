@@ -311,6 +311,7 @@ void JoystickSupport::handleJoystickAxes(StelCore* core)
 {
 	Q_ASSERT(activeJoystick);
 	Q_ASSERT(core);
+	StelMovementMgr* movement = core->getMovementMgr();
 
 	int axesCount = SDL_JoystickNumAxes(activeJoystick);
 	if (axesCount < 1)
@@ -323,18 +324,18 @@ void JoystickSupport::handleJoystickAxes(StelCore* core)
 
 	if (axesCount == 1) // Some kind of paddle?
 	{
-		interpretAsZooming(core, axisValues[0]);
+		interpretAsZooming(movement, axisValues[0]);
 		return;
 	}
 
 	if (axesCount >= 2) // Two axes, assuming 0==X, 1==Y, negative is left/up.
 	{
-		interpretAsHorizontalMovement(core, axisValues[0]);
-		interpretAsVerticalMovement(core, axisValues[1]);
+		interpretAsHorizontalMovement(movement, axisValues[0]);
+		interpretAsVerticalMovement(movement, axisValues[1]);
 	}
 
 	if (axesCount >= 3) // Third axis is assumed to be a throttle.
-		interpretAsZooming(core, axisValues[2]);
+		interpretAsZooming(movement, axisValues[2]);
 }
 
 void
@@ -440,12 +441,12 @@ JoystickSupport::handleGamepad(StelCore* core)
 	// Axes (before buttons, because I haven't fixed the order bug)
 	Sint16 value = SDL_GameControllerGetAxis(activeGamepad,
 	                                         SDL_CONTROLLER_AXIS_LEFTX);
-	interpretAsHorizontalMovement(core, value);
+	interpretAsHorizontalMovement(movement, value);
 	value = SDL_GameControllerGetAxis(activeGamepad, SDL_CONTROLLER_AXIS_LEFTY);
-	interpretAsVerticalMovement(core, value);
+	interpretAsVerticalMovement(movement, value);
 	value = SDL_GameControllerGetAxis(activeGamepad,
 	                                  SDL_CONTROLLER_AXIS_RIGHTY);
-	interpretAsZooming(core, value);
+	interpretAsZooming(movement, value);
 
 
 	// Buttons
@@ -519,11 +520,9 @@ JoystickSupport::getButtonStateChange(const SDL_GameControllerButton& button,
 }
 
 void
-JoystickSupport::interpretAsHorizontalMovement(StelCore* core,
+JoystickSupport::interpretAsHorizontalMovement(StelMovementMgr* movement,
                                                const Sint16& xAxis)
 {
-	StelMovementMgr* movement = core->getMovementMgr();
-
 	if (xAxis < -axisThreshold)
 		movement->turnLeft(true);
 	else if (xAxis > axisThreshold)
@@ -535,11 +534,10 @@ JoystickSupport::interpretAsHorizontalMovement(StelCore* core,
 	}
 }
 
-void JoystickSupport::interpretAsVerticalMovement(StelCore* core,
-                                                  const Sint16& yAxis)
+void
+JoystickSupport::interpretAsVerticalMovement(StelMovementMgr* movement,
+                                             const Sint16& yAxis)
 {
-	StelMovementMgr* movement = core->getMovementMgr();
-
 	if (yAxis < -axisThreshold)
 		movement->turnUp(true);
 	else if (yAxis > axisThreshold)
@@ -552,10 +550,9 @@ void JoystickSupport::interpretAsVerticalMovement(StelCore* core,
 }
 
 void
-JoystickSupport::interpretAsZooming(StelCore* core, const Sint16& zoomAxis)
+JoystickSupport::interpretAsZooming(StelMovementMgr* movement,
+                                    const Sint16& zoomAxis)
 {
-	StelMovementMgr* movement = core->getMovementMgr();
-
 	if (zoomAxis < -axisThreshold)
 		movement->zoomIn(true);
 	else if (zoomAxis > axisThreshold)
