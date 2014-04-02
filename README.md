@@ -117,7 +117,7 @@ Required:
  the same libs for your Stellarium build, it's not a problem)
  - for Stellarium 0.12.4, on Windows, Qt 4.8.5 and MinGW with gcc 4.6
  (from the original MinGW project?) Installing the latter is somewhat difficult.
- - SDL2, version 2.0.1 or later; available from http://www.libsdl.org/ - you
+ - SDL2, version 2.0.2 or later; available from http://www.libsdl.org/ - you
  can use the pre-compiled development package on Windows
 
 CMake is necessary to process the build script.
