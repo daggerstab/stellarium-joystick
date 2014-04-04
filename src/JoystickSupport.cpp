@@ -225,16 +225,11 @@ bool JoystickSupport::loadGamepadDatabase()
 	{
 		qDebug() << "JoystickSupport: loading game controller database:"
 		         << dbPath;
-		SDL_RWops* dbFileStream = SDL_RWFromFile(dbPath.toUtf8().data(), "rt");
-		if (dbFileStream)
-		{
-			// Second param indicates that the stream should be closed on finish
-			int count = SDL_GameControllerAddMappingsFromRW(dbFileStream, 1);
-			if (count > 0)
-				qDebug() << "JoystickSupport:" << count
-				         << "device descriptions loaded.";
-		}
-		else
+		int num = SDL_GameControllerAddMappingsFromFile(dbPath.toUtf8().data());
+		if (num > 0)
+			qDebug() << "JoystickSupport: loaded" << num
+			         << "additional device descriptions.";
+		else if (num < 0)
 			qDebug() << "JoystickSupport: SDL error:" << SDL_GetError();
 		return true;
 	}
