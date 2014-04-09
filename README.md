@@ -48,6 +48,7 @@ Installation
 On all systems, the plug-in requires the appropriate version of Stellarium to
 be already installed.
 
+
 On Windows, an installer will be provided for each release. Just run the
 executable and follow the instructions. It should detect Stellarium's
 installation directory automatically. If Stellarium has already run once (and
@@ -58,6 +59,9 @@ this manually after the installation (saves one Stellarium restart).
 The installer is generated with Inno Setup and accepts the standard command line
 options (when applicable), e.g. for a "silent" install:
 http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline
+The "load at startup" option can be controlled from the command line:
+/TASKS="loadatstartup" to enable, /TASKS="!loadatstartup" to disable.
+
 
 On Linux, you'll have to build the plug-in from source - either from a released
 source package, or by forking the project's repository on GitHub. See the
@@ -77,7 +81,8 @@ At this stage of development, almost no configuration is possible.
 
 If your gamepad is not recognized as a gamepad, it's possible to update or 
 modify the database which identifies gamepads: the gamecontrollerdb.txt file.
-It is read from the plug-in's data directory (see below).
+It is read from the plug-in's data directory (see below). A default copy may
+come with the plug-in, but it might not be up-to-date.
 
 You can download a copy of the SDL community-sourced database from its
 repository at GitHub: https://github.com/gabomdq/SDL_GameControllerDB
@@ -102,7 +107,7 @@ Platforms
 
 The plug-in will aim to work on the same major platforms as Stellarium (Linux,
 Mac OS X, Windows, and even BSD), but in practice:
- - Windows: it's very likely that the next release of Stellarium will not
+ - Windows: it's likely that the next release of Stellarium will not
  support dynamic plug-ins due to the way it's built (MSVC does not export all
  symbols like gcc does by default), unless a lot of work is done. At least
  one previous version of Stellarium (0.12.4) is supported though.
@@ -189,6 +194,11 @@ This project is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
 version. See the LICENSE file for the full text of the license.
+
+On Windows, the SDL2 runtime library will be installed together with
+the plug-in, as well as a copy of the SDL community game controller database.
+The SDL2 library is licensed under the zlib license. See the README-SDL and
+LICENSE-SDL files in Stellarium's installation directory for further details.
 
 
 Links
