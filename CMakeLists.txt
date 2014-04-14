@@ -51,7 +51,7 @@ find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
 if(GAME_CONTROLLER_DB_PATH)
   message(STATUS "Found game controller database: " ${GAME_CONTROLLER_DB_PATH})
   if(${Qt5Core_FOUND})
-    # TODO: Check Qt 5 compatibility
+    qt5_add_resources(RESOURCES_SRCS resources.qrc)
   else()
     if(${QT_VERSION_MAJOR} EQUAL 4)
       qt4_add_resources(RESOURCES_SRCS resources.qrc)
