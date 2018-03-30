@@ -45,20 +45,16 @@ endif(NOT SDL2_INCLUDE_DIR)
 
 
 # Optional packages
-find_file(GAME_CONTROLLER_DB_PATH NAME gamecontrollerdb.txt
-                                  PATHS ${CMAKE_SOURCE_DIR}
-                                  NO_DEFAULT_PATH)
-if(GAME_CONTROLLER_DB_PATH)
-  message(STATUS "Found game controller database: " ${GAME_CONTROLLER_DB_PATH})
-  if(${Qt5Core_FOUND})
-    qt5_add_resources(RESOURCES_SRCS resources.qrc)
-  else()
-    if(${QT_VERSION_MAJOR} EQUAL 4)
-      qt4_add_resources(RESOURCES_SRCS resources.qrc)
-    endif()
+
+
+# Resources
+if(${Qt5Core_FOUND})
+  qt5_add_resources(RESOURCES_SRCS resources.qrc)
+else()
+  if(${QT_VERSION_MAJOR} EQUAL 4)
+    qt4_add_resources(RESOURCES_SRCS resources.qrc)
   endif()
 endif()
-
 
 
 # Stellarium paths and defines
@@ -150,9 +146,6 @@ endif(NOT CMAKE_INSTALL_PREFIX)
 
 install(TARGETS JoystickSupport LIBRARY
                                 DESTINATION modules/JoystickSupport/)
-#install(FILES ${GAME_CONTROLLER_DB_PATH}
-#                                DESTINATION modules/JoystickSupport/ OPTIONAL)
-
 
 
 # Packaging
@@ -172,7 +165,7 @@ set(CPACK_SOURCE_STRIP_FILES TRUE)
 set(CPACK_SOURCE_IGNORE_FILES "/.git*"
                               ${PROJECT_BINARY_DIR}
                               "/CMakeLists.txt.user$"
-                              "/gamecontrollerdb.txt$")
+                              "/gamecontrollerdb*")
 include(CPack)
 
 # And the Inno Setup installer on Windows
