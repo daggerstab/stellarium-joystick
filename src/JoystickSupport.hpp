@@ -149,13 +149,20 @@ class JoystickPluginInterface : public QObject, StelPluginInterface
 {
 	Q_OBJECT
 #if QT_VERSION >= 0x050000
+#if (STELLARIUM_VERSION_MAJOR == 0 && STELLARIUM_VERSION_MINOR > 16)
+	Q_PLUGIN_METADATA(IID "org.stellarium.StelPluginInterface/2.0")
+#else
 	Q_PLUGIN_METADATA(IID "stellarium.StelPluginInterface/2.0")
+#endif
 #endif
 	Q_INTERFACES(StelPluginInterface)
 
 public:
 	virtual StelModule* getStelModule() const;
 	virtual StelPluginInfo getPluginInfo() const;
+#if (STELLARIUM_VERSION_MAJOR == 0 && STELLARIUM_VERSION_MINOR > 16)
+	virtual QObjectList getExtensionList() const {return QObjectList();}
+#endif
 };
 
 #endif//JOYSTICK_MODULE_HPP
