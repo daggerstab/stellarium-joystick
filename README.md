@@ -79,17 +79,14 @@ Configuration and customization
 
 At this stage of development, almost no configuration is possible.
 
-If your gamepad is not recognized as a gamepad, it's possible to update or 
-modify the database which identifies gamepads: the gamecontrollerdb.txt file.
-It is read from the plug-in's data directory (see below). A default copy may
-come with the plug-in, but it might not be up-to-date.
-
-You can download a copy of the SDL community-sourced database from its
+The plug-in uses SDL's community-sourced database of game controllers. A copy of
+`gamecontrollerdb.txt` is placed in the plug-in's data directory (see below)
+when the plug-in is first loaded. If your gamepad is not recognized by the
+plug-in, it's possible to update the database or edit it manually to add your
+device. An up-to-date copy of the database can be downloaded from its
 repository at GitHub: https://github.com/gabomdq/SDL_GameControllerDB
-The same page contains some instructions on how to get your gamepad's mappings
-if you use Steam. You can also download the latest version of the database and
-hope that your device is in it, directly from this link:
-https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt
+The same page contains instructions on how to get a gamepad's mappings in the
+format used in the database.
 
 The plug-in keeps its files in the modules/JoystickSupport sub-directory of
 Stellarium's user directory. This means:
@@ -150,7 +147,7 @@ Required:
  the same libs for your Stellarium build, it's not a problem)
  - for Stellarium 0.12.4, on Windows, Qt 4.8.5 and MinGW with gcc 4.6
  (from the original MinGW project?) Installing the latter is somewhat difficult.
- - SDL2, version 2.0.2 or later; available from http://www.libsdl.org/ - you
+ - SDL2, version 2.0.6 or later; available from http://www.libsdl.org/ - you
  can use the pre-compiled development package on Windows
 
 CMake is necessary to process the build script.
@@ -175,20 +172,11 @@ Stellarium's user data directory. Alternatively, on Windows, setting it to
 Stellarium's installation directory (e.g. C:\Program Files\Stellarium)
 will install the plug-in there, allowing all users to use the same installation. 
 
-Putting a gamecontrollersdb.txt file in the project's directory before running
-CMake will cause it to be embedded as a resource when the plug-in is compiled.
-This will be used as a default copy that is copied to the user data directory
-when the plug-in is run if no such file exists there.
-
-A local copy of the game controller database probably will be included in
-the project at some point in the future.
-
-
 Authors and copyright
 ---------------------
 
-At this point, all of the source code, build scripts and this file have been
-written by me, Bogdan Marinov.
+At this point, all of the plug-in's source code, build scripts and this file
+have been written by me, Bogdan Marinov.
 
 This project is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -199,6 +187,7 @@ On Windows, the SDL2 runtime library will be installed together with
 the plug-in, as well as a copy of the SDL community game controller database.
 The SDL2 library is licensed under the zlib license. See the README-SDL and
 LICENSE-SDL files in Stellarium's installation directory for further details.
+The controller database is licensed under the same terms as the SDL2 library.
 
 
 Links
